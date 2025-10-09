@@ -7,13 +7,27 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 
+interface HistoryItem {
+  time: string
+  epoch: number
+}
+
 export default function TimePage() {
   const [date, setDate] = useState(new Date())
   const [copied, setCopied] = useState(false)
+  const [history, setHistory] = useState<HistoryItem[]>([])
 
   // epoch -> time
   const [epochInput, setEpochInput] = useState("")
   const [parsedDate, setParsedDate] = useState<Date | null>(null)
+
+  // 初始化历史记录
+  useEffect(() => {
+    const saved = localStorage.getItem("time_history")
+    if (saved) {
+      setHistory(JSON.parse(saved))
+    }
+  }, [])
 
   // 每秒更新时间
   useEffect(() => {
@@ -50,7 +64,6 @@ export default function TimePage() {
   }
 
   const formatNumber = (num: number, len = 2) => String(num).padStart(len, "0")
-
   const year = date.getFullYear()
   const month = formatNumber(date.getMonth() + 1)
   const day = formatNumber(date.getDate())
@@ -61,10 +74,27 @@ export default function TimePage() {
   const formatted = `${year}-${month}-${day} ${hour}:${minute}:${second}`
   const epoch = Math.floor(date.getTime() / 1000)
 
+  // Copy 当前 epoch
   const copyToClipboard = async () => {
     await navigator.clipboard.writeText(epoch.toString())
     setCopied(true)
     setTimeout(() => setCopied(false), 1500)
+
+    const newHistory = [{ time: formatted, epoch }, ...history]
+    setHistory(newHistory)
+    localStorage.setItem("time_history", JSON.stringify(newHistory))
+  }
+
+  // Copy 历史记录中的 epoch
+  const copyHistoryItem = async (value: number) => {
+    await navigator.clipboard.writeText(value.toString())
+  }
+
+  // 删除记录
+  const deleteHistoryItem = (index: number) => {
+    const newHistory = history.filter((_, i) => i !== index)
+    setHistory(newHistory)
+    localStorage.setItem("time_history", JSON.stringify(newHistory))
   }
 
   // 监听输入变化
@@ -104,22 +134,25 @@ export default function TimePage() {
           <CardTitle>🕒 Current Time → Epoch</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col items-center space-y-6">
-          {/* 最上面显示完整时间 */}
-          <div className="text-2xl font-mono font-semibold">
-            {formatted}
-          </div>
+          {/* 显示时间 */}
+          <div className="text-2xl font-mono font-semibold">{formatted}</div>
 
-          {/* 带按钮的时间调节 */}
+          {/* 调整时间 */}
           <div className="flex space-x-4 text-xl font-mono">
             <TimePart label="year" value={year} onAdjust={adjust} />
+            <span>-</span>
             <TimePart label="month" value={month} onAdjust={adjust} />
+            <span>-</span>
             <TimePart label="day" value={day} onAdjust={adjust} />
+            <span>&nbsp;</span>
             <TimePart label="hour" value={hour} onAdjust={adjust} />
+            <span>:</span>
             <TimePart label="minute" value={minute} onAdjust={adjust} />
+            <span>:</span>
             <TimePart label="second" value={second} onAdjust={adjust} />
           </div>
 
-          {/* Epoch 时间 + 复制 */}
+          {/* Epoch 显示 + Copy */}
           <div className="flex items-center space-x-4">
             <span className="font-mono text-2xl font-bold">📅 {epoch}</span>
             <Button
@@ -130,6 +163,40 @@ export default function TimePage() {
               {copied ? "Copied!" : "Copy"}
             </Button>
           </div>
+
+          {/* 历史记录区 */}
+          {history.length > 0 && (
+            <div className="w-full mt-6 space-y-3">
+              <h3 className="font-semibold text-lg mb-2">📝 Copy History</h3>
+              {history.map((item, index) => (
+                <div
+                  key={index}
+                  className="border rounded-lg p-3 flex justify-between items-center bg-muted/40"
+                >
+                  <div className="flex flex-col text-sm font-mono">
+                    <span>{item.time}</span>
+                    <span className="text-gray-600">{item.epoch}</span>
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => copyHistoryItem(item.epoch)}
+                    >
+                      📋
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => deleteHistoryItem(index)}
+                    >
+                      ❌
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -146,9 +213,7 @@ export default function TimePage() {
             className="w-64 text-center font-mono"
           />
           {parsedDate ? (
-            <div className="text-lg font-mono">
-              📆 {formatDate(parsedDate)}
-            </div>
+            <div className="text-lg font-mono">📆 {formatDate(parsedDate)}</div>
           ) : epochInput ? (
             <div className="text-red-500">⚠️ Invalid epoch</div>
           ) : null}
