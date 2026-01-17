@@ -3,6 +3,8 @@
 import React from 'react';
 import { supabase } from '../../lib/supabase';
 
+export const revalidate = 0;
+
 // Function to render paragraphs from plain text content
 const renderStoryParagraphs = (text: string) => {
   if (!text) return null;
