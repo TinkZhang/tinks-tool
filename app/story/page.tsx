@@ -24,7 +24,7 @@ const StoryPage = async () => {
   if (error) {
     console.error('Error fetching story:', error);
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4" style={{ backgroundColor: '#f2f2f2' }}>
+      <div className="min-h-screen flex flex-col items-center justify-center p-4" style={{ backgroundColor: '#ffffff' }}>
         <p className="text-red-500" style={{ fontSize: '1.5em', fontFamily: 'sans-serif', maxWidth: '600px', textAlign: 'center' }}>
           Failed to load the story. Please make sure your Supabase credentials are correct and the table/columns exist.
         </p>
@@ -41,9 +41,9 @@ const StoryPage = async () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4" style={{ backgroundColor: '#f2f2f2', color: '#333' }}>
-      <main className="max-w-prose mx-auto text-center" style={{ fontFamily: 'serif', fontSize: '2.2em', lineHeight: '1.8', padding: '1em', border: '1px solid #ccc', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-        <h1 className="text-4xl font-bold mb-6" style={{ fontSize: '2.5em', marginBottom: '1em' }}>{story.title}</h1>
+    <div className="min-h-screen flex flex-col items-center p-4" style={{ backgroundColor: '#f2f2f2', color: '#333' }}>
+      <main className="max-w-prose mx-auto text-center" style={{ fontFamily: 'serif', fontSize: '2.2em', lineHeight: '1.8' }}>
+        <h2 className="font-bold" style={{ marginBottom: '1em' }}>{story.title}</h2>
         {renderStoryParagraphs(story.content)}
       </main>
     </div>
